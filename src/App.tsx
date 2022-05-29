@@ -1,8 +1,8 @@
 import React, { Suspense } from "react";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Route, Routes, BrowserRouter } from 'react-router-dom';
 import "./styles.css";
 
-const Search = React.lazy(() => import("./Search"));
+const Search = React.lazy(() => import("./Search/Search"));
 const Profile = React.lazy(() => import("./Profile"));
 
 const Loading = () => {

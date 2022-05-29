@@ -1,22 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
+import { useGithubAPI } from "../github-api/GithubAPIProvider";
 
 type Repo = {
   id: number;
   name: string;
   stargazers_count: number;
   html_url: string;
-};
-
-const queryRepos = async (profile: string): Promise<Repo[]> => {
-  if (!profile) {
-    return Promise.resolve([]);
-  }
-
-  const result = await fetch(`https://api.github.com/users/${profile}/repos`);
-
-  return await result.json();
 };
 
 const ReposList = styled.div`
@@ -40,16 +31,11 @@ const RepoTitle = styled.div``;
 
 const RepoInfo = styled.div``;
 
-export const ProfileRepos: React.FC = () => {
-  const { profile } = useParams();
-  const [repos, setRepos] = useState<Repo[]>([]);
+type ProfileRepoViewProps = {
+  readonly repos: readonly Repo[]
+}
 
-  useEffect(() => {
-    if (!profile) return;
-
-    queryRepos(profile).then((result: Repo[]) => setRepos(result));
-  }, [profile]);
-
+export const ProfileReposView: React.FC<ProfileRepoViewProps> = ({ repos }) => {
   return (
     <div>
       <h2>Repos</h2>
@@ -70,5 +56,19 @@ export const ProfileRepos: React.FC = () => {
         </ReposList>
       )}
     </div>
-  );
+  )
+}
+
+export const ProfileRepos: React.FC = () => {
+  const { profile } = useParams();
+  const { getUserRepos } = useGithubAPI();
+  const [repos, setRepos] = useState<readonly Repo[]>([]);
+
+  useEffect(() => {
+    if (!profile) return;
+
+    getUserRepos(profile).then((result) => setRepos(result));
+  }, [profile]);
+
+  return <ProfileReposView repos={repos} />;
 };

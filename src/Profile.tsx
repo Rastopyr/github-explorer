@@ -1,25 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Link, Route, Routes, useParams } from "react-router-dom";
 import styled from "styled-components";
+import { useGithubAPI } from "./github-api/GithubAPIProvider";
 import { ProfileRepos } from "./Profile/Repos";
 import { ProfileStarred } from "./Profile/Starred";
 
 type User = {
-  id: number;
-  login: string;
-  stars: number;
-  avatar_url: string;
-  followers: number;
-};
-
-const queryUser = async (profile: string): Promise<User | null> => {
-  if (!profile) {
-    return Promise.resolve(null);
-  }
-
-  const result = await fetch(`https://api.github.com/users/${profile}`);
-
-  return await result.json();
+  readonly id: number;
+  readonly login: string;
+  readonly stars: number;
+  readonly avatar_url: string;
+  readonly followers: number;
 };
 
 type LoadingUserProps = {
@@ -97,31 +88,30 @@ const UserView: React.FC<UserViewProps> = ({ user }) => {
   );
 };
 
+const ProfileView: React.FC<{ readonly user: User | undefined } & LoadingUserProps> = ({ profile, user }) => {
+  return <div>
+    <h1>Profile {profile}</h1>
+
+    {!user ? <LoadingUser profile={profile} /> : <UserView user={user} />}
+  </div>
+};
+
 export const Profile: React.FC = () => {
   const { profile } = useParams();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | undefined>(undefined);
+  const { getProfile } = useGithubAPI();
 
   useEffect(() => {
-    if (!profile) {
-      return;
-    }
+    if (!profile) return;
 
-    queryUser(profile).then((user) => {
-      setUser(user);
-    });
+    getProfile(profile).then((user) => setUser(user));
   }, [profile]);
 
   if (!profile) {
     return null;
   }
 
-  return (
-    <div>
-      <h1>Profile {profile}</h1>
-
-      {!user ? <LoadingUser profile={profile} /> : <UserView user={user} />}
-    </div>
-  );
+  return <ProfileView user={user} profile={profile} />;
 };
 
 export default React.memo(Profile);
