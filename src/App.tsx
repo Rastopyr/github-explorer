@@ -33,15 +33,6 @@ export default function App() {
               </Suspense>
             }
           />
-
-          <Route
-            path="/search"
-            element={
-              <Suspense fallback={<Loading />}>
-                <Search />
-              </Suspense>
-            }
-          />
         </Routes>
       </BrowserRouter>
     </div>
