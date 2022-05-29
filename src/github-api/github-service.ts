@@ -27,7 +27,7 @@ export type SearchResult = {
 
 export type GithubService = {
     readonly findUsers: (usernameQuery: string) => Promise<SearchResult>;
-    readonly getProfile: (username: string) => Promise<UserProfile | null>;
+    readonly getProfile: (username: string) => Promise<UserProfile | undefined>;
     readonly getUserRepos: (username: string) => Promise<readonly Repo[]>;
     readonly getUserStarredRepos: (username: string) => Promise<readonly Repo[]>;
 }
@@ -37,7 +37,7 @@ export function createGithubService(apiService: TransportAPIService): GithubServ
         return apiService.request<SearchResult>(`search/users?q=${usernameQuery}`);
     }
 
-    function getUser(username: string): Promise<UserProfile | null> {
+    function getUser(username: string): Promise<UserProfile | undefined> {
         return apiService.request<UserProfile>(`users/${username}`);  
     }
 
