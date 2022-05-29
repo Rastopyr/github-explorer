@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import { useGithubAPI } from "../github-api/GithubAPIProvider";
+import { useServerSideLoadingComponent } from "../server/ServerReadyStateProvider";
 
 type Repo = {
   id: number;
@@ -10,6 +11,11 @@ type Repo = {
   html_url: string;
   description: string;
 };
+
+type State = {
+  readonly repos: readonly Repo[];
+  readonly isLoaded: boolean;
+}
 
 const ReposList = styled.div`
   height: 150px;
@@ -63,16 +69,26 @@ const ProfileStarredView: React.FC<ProfileStarredViewProps> = ({ repos }) => {
   )
 }
 
+const initialState: State = {
+  isLoaded: false,
+  repos: []
+}
+
 export const ProfileStarred: React.FC = () => {
   const { profile } = useParams();
-  const [repos, setRepos] = useState<readonly Repo[]>([]);
+  const [state, setState] = useState<State>(initialState);
   const { getUserStarredRepos } = useGithubAPI();
+
+  useServerSideLoadingComponent("ProfileStarred", state.isLoaded);
   
   useEffect(() => {
     if (!profile) return;
 
-    getUserStarredRepos(profile).then((result) => setRepos(result));
+    getUserStarredRepos(profile).then((result) => setState({
+      isLoaded: true,
+      repos: result
+    }));
   }, [profile]);
 
-  return <ProfileStarredView repos={repos} />;
+  return <ProfileStarredView repos={state.repos} />;
 };

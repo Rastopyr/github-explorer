@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import { useGithubAPI } from "../github-api/GithubAPIProvider";
+import { useServerSideLoadingComponent } from "../server/ServerReadyStateProvider";
 
 type Repo = {
   id: number;
@@ -9,6 +10,11 @@ type Repo = {
   stargazers_count: number;
   html_url: string;
 };
+
+type State = {
+  readonly repos: readonly Repo[];
+  readonly isLoaded: boolean;
+}
 
 const ReposList = styled.div`
   height: 150px;
@@ -59,16 +65,26 @@ export const ProfileReposView: React.FC<ProfileRepoViewProps> = ({ repos }) => {
   )
 }
 
+const initialState: State = {
+  isLoaded: false,
+  repos: []
+}
+
 export const ProfileRepos: React.FC = () => {
   const { profile } = useParams();
   const { getUserRepos } = useGithubAPI();
-  const [repos, setRepos] = useState<readonly Repo[]>([]);
+  const [state, setState] = useState<State>(initialState);
+
+  useServerSideLoadingComponent("ProfileRepos", state.isLoaded);
 
   useEffect(() => {
     if (!profile) return;
 
-    getUserRepos(profile).then((result) => setRepos(result));
+    getUserRepos(profile).then((result) => setState({
+      isLoaded: true,
+      repos: result
+    }));
   }, [profile]);
 
-  return <ProfileReposView repos={repos} />;
+  return <ProfileReposView repos={state.repos} />;
 };

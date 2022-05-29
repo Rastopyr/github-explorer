@@ -4,6 +4,7 @@ import styled from "styled-components";
 import { useGithubAPI } from "./github-api/GithubAPIProvider";
 import { ProfileRepos } from "./Profile/Repos";
 import { ProfileStarred } from "./Profile/Starred";
+import { useServerSideLoadingComponent } from './server/ServerReadyStateProvider';
 
 type User = {
   readonly id: number;
@@ -106,6 +107,8 @@ export const Profile: React.FC = () => {
 
     getProfile(profile).then((user) => setUser(user));
   }, [profile]);
+
+  useServerSideLoadingComponent("Profile", user !== undefined);
 
   if (!profile) {
     return null;

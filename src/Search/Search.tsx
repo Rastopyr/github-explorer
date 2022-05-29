@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { Link } from "react-router-dom";
 import debounce from "debounce";
 import { useGithubAPI } from "../github-api/GithubAPIProvider";
+import { useServerSideLoadingComponent } from "../server/ServerReadyStateProvider";
 
 const List = styled.div`
   display: flex;
@@ -27,6 +28,7 @@ type User = {
 }; 
 
 type SearchResults = {
+  readonly isLoaded: boolean;
   readonly list: readonly User[]
   readonly count: number;
 }
@@ -71,6 +73,7 @@ export const SearchView: React.FC<SearchViewProps> = ({ onQueryChange, searchRes
 }
 
 const initial_state: SearchResults = {
+  isLoaded: false,
   count: 0,
   list: []
 }
@@ -83,6 +86,7 @@ export const Search: React.FC = () => {
         (query: string) => {
           findUsers(query).then((searchResponse) => {
             setState({
+              isLoaded: true,
               count: searchResponse.total_count,
               list: searchResponse.items
             });
@@ -92,6 +96,10 @@ export const Search: React.FC = () => {
         false
       )
     );
+    
+
+  useServerSideLoadingComponent("Search", state.isLoaded);
+  
   return <SearchView
     onQueryChange={queryFn}
     searchResults={state}
